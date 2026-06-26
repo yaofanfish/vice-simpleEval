@@ -356,10 +356,10 @@ void SetupWorker(int threadNum, thrd_t *workerTh, S_BOARD *pos, S_SEARCHINFO *in
 }
 
 
-void CreateSearchWorkers(S_BOARD *pos, S_SEARCHINFO *info, S_HASHTABLE *table) {
+void CreateSearchWorkers(int numThreads, S_BOARD *pos, S_SEARCHINFO *info, S_HASHTABLE *table) {
 
-	printf("CreateSearchWorkers:%d\n",info->threadNum);
-	for (int i = 0; i < info->threadNum; i++) {
+	printf("CreateSearchWorkers:%d\n",numThreads);
+	for (int i = 0; i < numThreads; i++) {
         SetupWorker(i, &workerThreads[i], pos, info, table);
     }
 }
@@ -370,20 +370,29 @@ void SearchPosition(S_BOARD *pos, S_SEARCHINFO *info, S_HASHTABLE *table) {
 
 	int bestMove = NOMOVE;
 
+	int numThreads = info->threadNum;
+	if(numThreads < 1) numThreads = 1;
+	if(numThreads > MAXTHREADS) numThreads = MAXTHREADS;
+
 	ClearForSearch(pos,info,table);
 	
 	if(EngineOptions->UseBook == TRUE) {
 		bestMove = GetBookMove(pos);
+		if(bestMove != NOMOVE) {
+			printf("Book move:%s\n",PrMove(bestMove));
+			printf("bestmove %s\n",PrMove(bestMove));
+			return;
+		}
 	}
 
 	//printf("Search depth:%d\n",info->depth);
 
 	// iterative deepening
 	if(bestMove == NOMOVE) {
-        CreateSearchWorkers(pos, info, table);
-	}	
+        CreateSearchWorkers(numThreads, pos, info, table);
+	}
 
-	for (int i = 0; i < info->threadNum; i++) {
+	for (int i = 0; i < numThreads; i++) {
 		thrd_join(workerThreads[i], NULL);
 	}
 

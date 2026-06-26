@@ -9,7 +9,7 @@
 #define MAX_HASH 1024
 
 #ifndef DEBUG
-#define ASSERT(n) ((void)(n))
+#define ASSERT(n) ((void)sizeof(n))
 #else
 #define ASSERT(n) \
 if(!(n)) { \
@@ -150,7 +150,7 @@ typedef struct {
 	long nodes;
 
 	int quit;
-	int stopped;
+	volatile int stopped;
 
 	float fh;
 	float fhf;

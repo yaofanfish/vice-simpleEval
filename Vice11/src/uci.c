@@ -8,6 +8,7 @@
 #define INPUTBUFFER 400 * 6
 
 thrd_t mainSearchThread;
+int mainSearchThreadActive = FALSE;
 
 thrd_t LaunchSearchThread(S_BOARD *pos, S_SEARCHINFO *info, S_HASHTABLE *table ) {
 	S_SEARCH_THREAD_DATA *pSearchData = malloc(sizeof(S_SEARCH_THREAD_DATA));
@@ -24,8 +25,12 @@ thrd_t LaunchSearchThread(S_BOARD *pos, S_SEARCHINFO *info, S_HASHTABLE *table )
 }
 
 void JoinSearchThread(S_SEARCHINFO *info) {
+	if (!mainSearchThreadActive) {
+		return;
+	}
 	info->stopped = TRUE;
 	thrd_join(mainSearchThread, NULL);
+	mainSearchThreadActive = FALSE;
 }
 
 // go depth 6 wtime 180000 btime 100000 binc 1000 winc 1000 movetime 1000 movestogo 40
@@ -90,7 +95,12 @@ void ParseGo(char* line, S_SEARCHINFO *info, S_BOARD *pos, S_HASHTABLE *table) {
 	printf("time:%d start:%d stop:%d depth:%d timeset:%d\n",
 		time,info->starttime,info->stoptime,info->depth,info->timeset);
 	//SearchPosition(pos, info, HashTable);
+
+	JoinSearchThread(info);
+
+	info->stopped = FALSE;
 	mainSearchThread = LaunchSearchThread(pos, info, table);
+	mainSearchThreadActive = TRUE;
 }
 
 // position fen fenstr
@@ -132,7 +142,7 @@ void ParsePosition(char* lineIn, S_BOARD *pos) {
 
 void Uci_Loop(S_BOARD *pos, S_SEARCHINFO *info) {
 
-	EngineOptions->UseBook = FALSE;
+	EngineOptions->UseBook = TRUE;
 
 	setbuf(stdin, NULL);
     setbuf(stdout, NULL);
@@ -140,8 +150,9 @@ void Uci_Loop(S_BOARD *pos, S_SEARCHINFO *info) {
 	char line[INPUTBUFFER];
     printf("id name %s\n",NAME);
     printf("id author Bluefever\n");
-	printf("option name Hash type spin default 64 min 4 max %d\n",MAX_HASH);
-	printf("option name Book type check default false\n");
+	printf("option name Hash type spin default 256 min 4 max %d\n",MAX_HASH);
+	printf("option name Threads type spin default %d min 1 max %d\n",info->threadNum,MAXTHREADS);
+	//printf("option name Book type check default false\n");
     printf("uciok\n");
 	
 	int MB = 64;
@@ -178,6 +189,8 @@ void Uci_Loop(S_BOARD *pos, S_SEARCHINFO *info) {
         } else if (!strncmp(line, "uci", 3)) {
             printf("id name %s\n",NAME);
             printf("id author Bluefever\n");
+            printf("option name Hash type spin default 256 min 4 max %d\n",MAX_HASH);
+            printf("option name Threads type spin default %d min 1 max %d\n",info->threadNum,MAXTHREADS);
             printf("uciok\n");
         } else if (!strncmp(line, "debug", 4)) {
             DebugAnalysisTest(pos,info,HashTable);
@@ -192,16 +205,14 @@ void Uci_Loop(S_BOARD *pos, S_SEARCHINFO *info) {
 			sscanf(line,"%*s %*s %*s %*s %d",&MB);
 			if(MB < 1) MB = 1;
 			if(MB > MAXTHREADS) MB = MAXTHREADS;
-			printf("Set Threads to %d MB\n",MB);
+			printf("Set Threads to %d\n",MB);
 			info->threadNum = MB;
-		} else if (!strncmp(line, "setoption name Book value ", 26)) {			
-			char *ptrTrue = NULL;
-			ptrTrue = strstr(line, "true");
-			if(ptrTrue != NULL) {
-				EngineOptions->UseBook = TRUE;
-			} else {
-				EngineOptions->UseBook = FALSE;
-			}
+		} else if (!strncmp(line, "setoption name Book value ", 26)) {
+			// if(ptrTrue != NULL) {
+			// 	EngineOptions->UseBook = TRUE;
+			// } else {
+			// 	EngineOptions->UseBook = FALSE;
+			// }
 		}
 		if(info->quit) break;
     }
