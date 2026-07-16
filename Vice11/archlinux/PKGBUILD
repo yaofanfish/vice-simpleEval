@@ -47,5 +47,6 @@ check() {
 
 package() {
 	cd "vice-simpleEval/Vice11/src"
-	install vice-simpleEval "$pkgdir/usr/bin/vice-simpleEval"
+	ls
+	install -Dm775 vice-simpleEval "$pkgdir/usr/bin/vice-simpleEval"
 }

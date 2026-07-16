@@ -150,7 +150,7 @@ static int Quiescence(int alpha, int beta, S_BOARD *pos, S_SEARCHINFO *info) {
 	return alpha;
 }
 
-static int AlphaBeta(int alpha, int beta, int depth, S_BOARD *pos, S_SEARCHINFO *info, S_HASHTABLE *table, int DoNull) {
+static int _AlphaBeta(int alpha, int beta, int depth, S_BOARD *pos, S_SEARCHINFO *info, S_HASHTABLE *table, int DoNull) {
 
 	ASSERT(CheckBoard(pos));
 	ASSERT(beta>alpha);
@@ -191,7 +191,7 @@ static int AlphaBeta(int alpha, int beta, int depth, S_BOARD *pos, S_SEARCHINFO 
 
 	if( DoNull && !InCheck && pos->ply && (pos->bigPce[pos->side] > 1) && depth >= 4) {
 		MakeNullMove(pos);
-		Score = -AlphaBeta( -beta, -beta + 1, depth-4, pos, info, table, FALSE);
+		Score = -_AlphaBeta( -beta, -beta + 1, depth-4, pos, info, table, FALSE);
 		TakeNullMove(pos);
 		if(info->stopped == TRUE) {
 			return 0;
@@ -234,7 +234,7 @@ static int AlphaBeta(int alpha, int beta, int depth, S_BOARD *pos, S_SEARCHINFO 
         }
 
 		Legal++;
-		Score = -AlphaBeta( -beta, -alpha, depth-1, pos, info, table, TRUE);
+		Score = -_AlphaBeta( -beta, -alpha, depth-1, pos, info, table, TRUE);
 		TakeMove(pos);
 
 		if(info->stopped == TRUE) {
@@ -287,6 +287,50 @@ static int AlphaBeta(int alpha, int beta, int depth, S_BOARD *pos, S_SEARCHINFO 
 	return alpha;
 }
 
+int AlphaBeta(int alpha, int beta, int depth, S_BOARD *pos, S_SEARCHINFO *info, S_HASHTABLE *table, int DoNull) {
+    S_MOVELIST list[1];
+    GenerateAllMoves(pos, list);
+
+    int bestScore = -AB_BOUND;
+    int moveScores[218];
+    int legalMoves = 0;
+
+    // Evaluate each move at the root
+    for (int i = 0; i < list->count; ++i) {
+        if (!MakeMove(pos, list->moves[i].move)) {
+            continue;
+        }
+
+        
+        int score = -_AlphaBeta(-beta, -alpha, depth - 1, pos, info, table, TRUE);
+        TakeMove(pos);
+
+        if (info->stopped == TRUE) return 0;
+
+        moveScores[i] = score;
+        if (score > bestScore) {
+            bestScore = score;
+        }
+        legalMoves++;
+    }
+
+    if (legalMoves == 0) return 0;
+
+    
+    int besti[218];
+    int count = 0;
+    for (int i = 0; i < list->count; ++i) {
+        if (moveScores[i] == bestScore) {
+            besti[count++] = i;
+        }
+    }
+
+    // Randomly select one index from the best moves
+    int i = besti[rand() % count];
+    
+    // Return the score of the randomly selected move
+    return moveScores[i];
+}
 
 int SearchPosition_Thread(void *data) {
 	S_SEARCH_THREAD_DATA *searchData = (S_SEARCH_THREAD_DATA *)data;
