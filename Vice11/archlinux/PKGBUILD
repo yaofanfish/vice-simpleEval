@@ -1,0 +1,51 @@
+# This is an example PKGBUILD file. Use this as a start to creating your own,
+# and remove these comments. For more information, see 'man PKGBUILD'.
+# NOTE: Please fill out the license field for your package! If it is unknown,
+# then please put 'unknown'.
+
+# Maintainer: Your Name <youremail@domain.com>
+pkgname=vice-simpleEval
+pkgver=1.0.0
+pkgrel=1
+epoch=
+pkgdesc="Fork of vice chess engine only using material evaluation"
+arch=("x86_64")
+url=""
+license=('GPL')
+groups=()
+depends=()
+makedepends=(make)
+checkdepends=()
+optdepends=()
+provides=()
+conflicts=()
+replaces=()
+backup=()
+options=()
+install=
+changelog=
+source=("git+https://github.com/yaofanfish/vice-simpleEval")
+noextract=()
+sha256sums=()
+validpgpkeys=()
+
+prepare() {
+	cd "vice-simpleEval/Vice11/src"
+	#patch -p1 -i "$srcdir/$pkgname-$pkgver.patch"
+}
+
+build() {
+	cd "vice-simpleEval/Vice11/src"
+	ls
+	make
+}
+
+check() {
+	cd "vice-simpleEval/Vice11/src"
+	#make -k check
+}
+
+package() {
+	cd "vice-simpleEval/Vice11/src"
+	install vice-simpleEval "$pkgdir/usr/bin/vice-simpleEval"
+}

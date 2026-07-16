@@ -54,4 +54,4 @@ Module.symvers
 Mkfile.old
 dkms.conf
 
-./Vice11/archlinux/
+/Vice11/archlinux/
