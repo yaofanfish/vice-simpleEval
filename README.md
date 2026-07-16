@@ -1,6 +1,10 @@
 # Forked engine
 There isn't another chess engine source code for a chess engine only evaluating positions with material (that is easily found) so I made this. 
 
+# Installation:
+Can be installed easily and natively on Arch Linux using the Makefile in the root directory that utilises the PKGBUILD. 
+It isn't completely production-done yet since that requires sha256sums of the git repository that includes the PKGBUILD itself, so I can't publish that in the same git repo otherwise its impossible. But this isn't a real issue for anyone other than myself. 
+
 # Original README.md
 Everything below here is simply the original README.md
 # Vice Chess Engine
