@@ -2,7 +2,7 @@
 
 #include "stdio.h"
 #include "defs.h"
-#include "tinycthread.h"
+#include <pthread.h>
 #include "string.h"
 
 #define INPUTBUFFER 400 * 6

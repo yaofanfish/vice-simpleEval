@@ -357,7 +357,24 @@ extern void InitPolyBook() ;
 
 #endif
 
+#ifndef THREADS_H
+#define THREADS_H
 
+#include <pthread.h>
+
+// Map tinycthread types to pthread
+typedef pthread_t thrd_t;
+typedef pthread_mutex_t mtx_t;
+
+// Map tinycthread functions to pthread
+#define thrd_create(t, func, arg) pthread_create(t, NULL, (void* (*)(void*))func, arg)
+#define thrd_join(t, res) pthread_join(t, NULL)
+#define mtx_init(m, type) pthread_mutex_init(m, NULL)
+#define mtx_lock(m) pthread_mutex_lock(m)
+#define mtx_unlock(m) pthread_mutex_unlock(m)
+#define mtx_destroy(m) pthread_mutex_destroy(m)
+
+#endif
 
 
 

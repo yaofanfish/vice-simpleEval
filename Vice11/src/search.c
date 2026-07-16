@@ -3,7 +3,7 @@
 #include "stdio.h"
 #include "string.h"
 #include "defs.h"
-#include "tinycthread.h"
+#include <pthread.h>
 
 
 int rootDepth;
