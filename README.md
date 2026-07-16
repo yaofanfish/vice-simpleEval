@@ -1,3 +1,8 @@
+# Forked engine
+There isn't another chess engine source code for a chess engine only evaluating positions with material (that is easily found) so I made this. 
+
+# Original README.md
+Everything below here is simply the original README.md
 # Vice Chess Engine
 This is the repo for the Vice chess engine series on YouTube.
 
