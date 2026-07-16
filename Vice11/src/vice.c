@@ -11,6 +11,9 @@
 
 int main(void) {
 
+	srand(time(NULL));
+
+
 	AllInit();
 
 	S_BOARD pos[1];

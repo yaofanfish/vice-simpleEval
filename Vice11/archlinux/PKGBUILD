@@ -24,19 +24,19 @@ backup=()
 options=()
 install=
 changelog=
-source=("git+https://github.com/yaofanfish/vice-simpleEval")
+source=()
 noextract=()
 sha256sums=()
 validpgpkeys=()
 
 prepare() {
+	ln -snf ~/git/vice-simpleEval/ vice-simpleEval
 	cd "vice-simpleEval/Vice11/src"
 	#patch -p1 -i "$srcdir/$pkgname-$pkgver.patch"
 }
 
 build() {
 	cd "vice-simpleEval/Vice11/src"
-	ls
 	make
 }
 

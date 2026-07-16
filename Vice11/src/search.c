@@ -287,49 +287,60 @@ static int _AlphaBeta(int alpha, int beta, int depth, S_BOARD *pos, S_SEARCHINFO
 	return alpha;
 }
 
+#define MAX_MVS 271
+
+#define MAX_MOVES MAX_MVS
+
+
 int AlphaBeta(int alpha, int beta, int depth, S_BOARD *pos, S_SEARCHINFO *info, S_HASHTABLE *table, int DoNull) {
     S_MOVELIST list[1];
     GenerateAllMoves(pos, list);
+    
+    int MoveNum = 0;
+    int BestScore = -AB_BOUND;
+    int Legal = 0;
+    
+    // Structure to track results
+    int scores[MAX_MOVES];
+    int bestMoveIndices[MAX_MOVES];
+    int bestMoveCount = 0;
 
-    int bestScore = -AB_BOUND;
-    int moveScores[218];
-    int legalMoves = 0;
-
-    // Evaluate each move at the root
-    for (int i = 0; i < list->count; ++i) {
-        if (!MakeMove(pos, list->moves[i].move)) {
-            continue;
-        }
-
+    // 1. Perform the search for all moves to determine the BestScore
+    for(MoveNum = 0; MoveNum < list->count; ++MoveNum) {
+        PickNextMove(MoveNum, list);
+        if (!MakeMove(pos, list->moves[MoveNum].move)) continue;
         
-        int score = -_AlphaBeta(-beta, -alpha, depth - 1, pos, info, table, TRUE);
+        Legal++;
+        int Score = -_AlphaBeta(-beta, -alpha, depth - 1, pos, info, table, FALSE);
         TakeMove(pos);
-
-        if (info->stopped == TRUE) return 0;
-
-        moveScores[i] = score;
-        if (score > bestScore) {
-            bestScore = score;
-        }
-        legalMoves++;
-    }
-
-    if (legalMoves == 0) return 0;
-
-    
-    int besti[218];
-    int count = 0;
-    for (int i = 0; i < list->count; ++i) {
-        if (moveScores[i] == bestScore) {
-            besti[count++] = i;
+        
+        if(info->stopped == TRUE) return 0;
+        
+        scores[MoveNum] = Score;
+        if (Score > BestScore) {
+            BestScore = Score;
         }
     }
 
-    // Randomly select one index from the best moves
-    int i = besti[rand() % count];
-    
-    // Return the score of the randomly selected move
-    return moveScores[i];
+    // 2. Identify all moves that share the BestScore
+    for(MoveNum = 0; MoveNum < list->count; ++MoveNum) {
+        if (scores[MoveNum] == BestScore) {
+            bestMoveIndices[bestMoveCount++] = MoveNum;
+        }
+    }
+
+    // 3. Randomly select one of the top moves
+    int chosenIdx = bestMoveIndices[rand() % bestMoveCount];
+    int BestMove = list->moves[chosenIdx].move;
+
+    // 4. Update the hash table with the randomly selected best move
+    if (BestScore > alpha) {
+        StoreHashEntry(pos, table, BestMove, BestScore, HFEXACT, depth);
+    } else {
+        StoreHashEntry(pos, table, BestMove, alpha, HFALPHA, depth);
+    }
+
+    return BestScore;
 }
 
 int SearchPosition_Thread(void *data) {
